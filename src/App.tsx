@@ -5,7 +5,7 @@ import Toolbar from './components/Toolbar';
 import ColorPicker from './components/ColorPicker';
 import BrushControls from './components/BrushControls';
 import LayerPanel from './components/LayerPanel';
-import { Palette, Layers, Save } from 'lucide-react';
+import { Palette, Layers, Save, Crown } from 'lucide-react';
 
 function App() {
   return (
@@ -14,11 +14,11 @@ function App() {
         {/* Header */}
         <header className="border-b border-neutral-800 bg-neutral-900 p-3 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Palette className="text-blue-500" size={24} />
-            <h1 className="text-xl font-bold">PaintPro</h1>
+            <Crown className="text-yellow-500" size={24} />
+            <h1 className="text-xl font-bold">Imparator Paint Pro</h1>
           </div>
           <div className="flex items-center space-x-4">
-            <button className="px-4 py-1.5 bg-blue-600 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-1">
+            <button className="px-4 py-1.5 bg-yellow-600 hover:bg-yellow-700 rounded-md transition-colors flex items-center space-x-1">
               <Save size={16} />
               <span>Save Project</span>
             </button>

@@ -4,9 +4,9 @@ export type Point = {
   pressure?: number;
 };
 
-export type BrushType = 'pen' | 'pencil' | 'marker' | 'spray';
+export type BrushType = 'pen' | 'pencil' | 'marker' | 'spray' | 'watercolor' | 'airbrush';
 
-export type Tool = 'brush' | 'eraser' | 'eyedropper' | 'move' | 'zoom';
+export type Tool = 'brush' | 'eraser' | 'eyedropper' | 'move' | 'zoom' | 'magic' | 'shape' | 'text';
 
 export type Layer = {
   id: string;
@@ -26,6 +26,8 @@ export type BrushPreset = {
   opacity: number;
   color: string;
 };
+
+export type Filter = 'grayscale' | 'sepia' | 'invert' | 'blur' | 'sharpen';
 
 export interface PaintState {
   currentColor: string;

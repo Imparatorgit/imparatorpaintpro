@@ -13,7 +13,11 @@ import {
   ZoomIn,
   Maximize2,
   Grid,
-  Split
+  Split,
+  Wand2,
+  Square,
+  Type,
+  Image
 } from 'lucide-react';
 
 const Toolbar: React.FC = () => {
@@ -24,7 +28,8 @@ const Toolbar: React.FC = () => {
     undo, 
     redo,
     toggleSymmetry,
-    setSymmetryAxis 
+    setSymmetryAxis,
+    applyFilter
   } = usePaint();
 
   const handleExport = () => {
@@ -33,7 +38,7 @@ const Toolbar: React.FC = () => {
       const dataURL = canvas.toDataURL('image/png');
       const a = document.createElement('a');
       a.href = dataURL;
-      a.download = 'paintpro_export.png';
+      a.download = 'imparator_paint_export.png';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -46,6 +51,9 @@ const Toolbar: React.FC = () => {
     { name: 'eyedropper' as Tool, icon: <Pipette size={20} />, label: 'Color Picker' },
     { name: 'move' as Tool, icon: <Hand size={20} />, label: 'Move Canvas' },
     { name: 'zoom' as Tool, icon: <ZoomIn size={20} />, label: 'Zoom' },
+    { name: 'magic' as Tool, icon: <Wand2 size={20} />, label: 'Magic Wand' },
+    { name: 'shape' as Tool, icon: <Square size={20} />, label: 'Shape Tool' },
+    { name: 'text' as Tool, icon: <Type size={20} />, label: 'Text Tool' },
   ];
 
   const brushTypes = [
@@ -53,6 +61,16 @@ const Toolbar: React.FC = () => {
     { name: 'pencil' as BrushType, label: 'Pencil' },
     { name: 'marker' as BrushType, label: 'Marker' },
     { name: 'spray' as BrushType, label: 'Spray' },
+    { name: 'watercolor' as BrushType, label: 'Watercolor' },
+    { name: 'airbrush' as BrushType, label: 'Airbrush' },
+  ];
+
+  const filters = [
+    { name: 'grayscale', label: 'Grayscale' },
+    { name: 'sepia', label: 'Sepia' },
+    { name: 'invert', label: 'Invert' },
+    { name: 'blur', label: 'Blur' },
+    { name: 'sharpen', label: 'Sharpen' },
   ];
 
   return (
@@ -94,6 +112,23 @@ const Toolbar: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Filters */}
+      <div className="space-y-2">
+        <h3 className="text-xs font-medium text-neutral-400 uppercase tracking-wider px-2">Filters</h3>
+        <div className="grid grid-cols-1 gap-1">
+          {filters.map((filter) => (
+            <button
+              key={filter.name}
+              onClick={() => applyFilter(filter.name)}
+              className="px-2 py-1 text-xs rounded hover:bg-neutral-800 transition-colors text-neutral-400"
+              title={`Apply ${filter.label}`}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+      </div>
       
       {/* Symmetry Tools */}
       <div className="space-y-2">

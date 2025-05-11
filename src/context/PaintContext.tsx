@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { BrushType, ColorHistory, Layer, PaintState, Tool } from '../types';
+import { BrushType, ColorHistory, Layer, PaintState, Tool, Filter } from '../types';
 import { generateId } from '../utils/helpers';
 
 interface PaintContextType {
@@ -22,6 +22,8 @@ interface PaintContextType {
   toggleSymmetry: () => void;
   setSymmetryAxis: (axis: 'vertical' | 'horizontal' | 'both') => void;
   setZoom: (zoom: number) => void;
+  applyFilter: (filter: Filter) => void;
+  reorderLayers: (fromIndex: number, toIndex: number) => void;
 }
 
 const initialState: PaintState = {
@@ -166,8 +168,23 @@ export const PaintProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       ),
     }));
   };
+
+  const reorderLayers = (fromIndex: number, toIndex: number) => {
+    setState((prev) => {
+      const newLayers = [...prev.layers];
+      const [movedLayer] = newLayers.splice(fromIndex, 1);
+      newLayers.splice(toIndex, 0, movedLayer);
+      
+      return {
+        ...prev,
+        layers: newLayers,
+        activeLayerIndex: toIndex,
+      };
+    });
+  };
   
   const undo = () => {
+    // Implement undo logic using canvas state
     setState((prev) => ({
       ...prev,
       canUndo: false,
@@ -175,6 +192,7 @@ export const PaintProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
   
   const redo = () => {
+    // Implement redo logic using canvas state
     setState((prev) => ({
       ...prev,
       canRedo: false,
@@ -215,6 +233,48 @@ export const PaintProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       zoom,
     }));
   };
+
+  const applyFilter = (filter: Filter) => {
+    const activeLayer = state.layers[state.activeLayerIndex];
+    if (!activeLayer?.canvas) return;
+
+    const ctx = activeLayer.canvas.getContext('2d');
+    if (!ctx) return;
+
+    const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+    const pixels = imageData.data;
+
+    switch (filter) {
+      case 'grayscale':
+        for (let i = 0; i < pixels.length; i += 4) {
+          const avg = (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
+          pixels[i] = avg;
+          pixels[i + 1] = avg;
+          pixels[i + 2] = avg;
+        }
+        break;
+      case 'sepia':
+        for (let i = 0; i < pixels.length; i += 4) {
+          const r = pixels[i];
+          const g = pixels[i + 1];
+          const b = pixels[i + 2];
+          pixels[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+          pixels[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+          pixels[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+        }
+        break;
+      case 'invert':
+        for (let i = 0; i < pixels.length; i += 4) {
+          pixels[i] = 255 - pixels[i];
+          pixels[i + 1] = 255 - pixels[i + 1];
+          pixels[i + 2] = 255 - pixels[i + 2];
+        }
+        break;
+      // Implement blur and sharpen filters
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  };
   
   return (
     <PaintContext.Provider
@@ -238,6 +298,8 @@ export const PaintProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         toggleSymmetry,
         setSymmetryAxis,
         setZoom,
+        applyFilter,
+        reorderLayers,
       }}
     >
       {children}
