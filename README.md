@@ -2,8 +2,6 @@
 
 A professional-grade painting application built with React and TypeScript, featuring a modern and intuitive interface.
 
-![Imparator Paint Pro](https://images.pexels.com/photos/3184657/pexels-photo-3184657.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2)
-
 ## Features
 
 - 🎨 Professional-grade drawing tools
