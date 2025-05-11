@@ -14,6 +14,7 @@ export type Layer = {
   visible: boolean;
   locked: boolean;
   canvas: HTMLCanvasElement | null;
+  opacity: number;
 };
 
 export type ColorHistory = string[];
@@ -46,4 +47,6 @@ export interface PaintState {
   symmetryEnabled: boolean;
   symmetryAxis: 'vertical' | 'horizontal' | 'both';
   brushPresets: BrushPreset[];
+  canvasHistory: ImageData[];
+  historyIndex: number;
 }

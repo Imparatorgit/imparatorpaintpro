@@ -1,11 +1,12 @@
 import { useRef, useEffect, useState, MouseEvent, TouchEvent } from 'react';
-import { Point } from '../types';
+import { Point, Tool } from '../types';
 import { getCanvasPosition, hexToRgba } from '../utils/helpers';
 
 interface UseCanvasProps {
   color: string;
   brushSize: number;
   opacity: number;
+  tool: Tool;
   canvasRef: React.RefObject<HTMLCanvasElement>;
   isDrawing: boolean;
   setIsDrawing: (isDrawing: boolean) => void;
@@ -15,6 +16,7 @@ export const useCanvas = ({
   color,
   brushSize,
   opacity,
+  tool,
   canvasRef,
   isDrawing,
   setIsDrawing,
@@ -32,19 +34,19 @@ export const useCanvas = ({
     // Setting default styles
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalCompositeOperation = tool === 'eraser' ? 'destination-out' : 'source-over';
     
     setContext(ctx);
-  }, [canvasRef]);
+  }, [tool]);
 
   useEffect(() => {
     if (!context) return;
-    context.strokeStyle = hexToRgba(color, opacity);
+    context.strokeStyle = tool === 'eraser' ? '#000000' : hexToRgba(color, opacity);
     context.lineWidth = brushSize;
-  }, [color, brushSize, opacity, context]);
+  }, [color, brushSize, opacity, context, tool]);
 
   const startDrawing = (point: Point) => {
-    if (!context || !canvasRef.current) return;
+    if (!context || !canvasRef.current || !['brush', 'eraser'].includes(tool)) return;
     
     setIsDrawing(true);
     lastPointRef.current = point;
@@ -56,7 +58,7 @@ export const useCanvas = ({
   };
 
   const draw = (point: Point) => {
-    if (!context || !isDrawing || !lastPointRef.current) return;
+    if (!context || !isDrawing || !lastPointRef.current || !['brush', 'eraser'].includes(tool)) return;
     
     context.beginPath();
     context.moveTo(lastPointRef.current.x, lastPointRef.current.y);
@@ -72,25 +74,24 @@ export const useCanvas = ({
   };
 
   const handleMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || !['brush', 'eraser'].includes(tool)) return;
     const point = getCanvasPosition(e.clientX, e.clientY, canvasRef.current);
     startDrawing(point);
   };
 
   const handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || !isDrawing) return;
+    if (!canvasRef.current || !isDrawing || !['brush', 'eraser'].includes(tool)) return;
     const point = getCanvasPosition(e.clientX, e.clientY, canvasRef.current);
     draw(point);
   };
 
   const handleTouchStart = (e: TouchEvent<HTMLCanvasElement>) => {
     e.preventDefault();
-    if (!canvasRef.current || e.touches.length === 0) return;
+    if (!canvasRef.current || e.touches.length === 0 || !['brush', 'eraser'].includes(tool)) return;
     
     const touch = e.touches[0];
     const point = getCanvasPosition(touch.clientX, touch.clientY, canvasRef.current);
     
-    // Check if the browser supports pressure
     if ('force' in touch) {
       point.pressure = touch.force;
     }
@@ -100,12 +101,11 @@ export const useCanvas = ({
 
   const handleTouchMove = (e: TouchEvent<HTMLCanvasElement>) => {
     e.preventDefault();
-    if (!canvasRef.current || !isDrawing || e.touches.length === 0) return;
+    if (!canvasRef.current || !isDrawing || e.touches.length === 0 || !['brush', 'eraser'].includes(tool)) return;
     
     const touch = e.touches[0];
     const point = getCanvasPosition(touch.clientX, touch.clientY, canvasRef.current);
     
-    // Check if the browser supports pressure
     if ('force' in touch) {
       point.pressure = touch.force;
     }

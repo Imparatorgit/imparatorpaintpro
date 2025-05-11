@@ -22,8 +22,10 @@ interface PaintContextType {
   toggleSymmetry: () => void;
   setSymmetryAxis: (axis: 'vertical' | 'horizontal' | 'both') => void;
   setZoom: (zoom: number) => void;
+  resetTransform: () => void;
   applyFilter: (filter: Filter) => void;
   reorderLayers: (fromIndex: number, toIndex: number) => void;
+  saveProject: () => void;
 }
 
 const initialState: PaintState = {
@@ -43,6 +45,8 @@ const initialState: PaintState = {
   symmetryEnabled: false,
   symmetryAxis: 'vertical',
   brushPresets: [],
+  canvasHistory: [],
+  historyIndex: -1,
 };
 
 const PaintContext = createContext<PaintContextType | undefined>(undefined);
@@ -105,6 +109,7 @@ export const PaintProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       visible: true,
       locked: false,
       canvas: document.createElement('canvas'),
+      opacity: 1,
     };
     
     setState((prev) => ({
@@ -184,19 +189,25 @@ export const PaintProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
   
   const undo = () => {
-    // Implement undo logic using canvas state
-    setState((prev) => ({
-      ...prev,
-      canUndo: false,
-    }));
+    if (state.historyIndex > 0) {
+      setState((prev) => ({
+        ...prev,
+        historyIndex: prev.historyIndex - 1,
+        canUndo: prev.historyIndex > 1,
+        canRedo: true,
+      }));
+    }
   };
   
   const redo = () => {
-    // Implement redo logic using canvas state
-    setState((prev) => ({
-      ...prev,
-      canRedo: false,
-    }));
+    if (state.historyIndex < state.canvasHistory.length - 1) {
+      setState((prev) => ({
+        ...prev,
+        historyIndex: prev.historyIndex + 1,
+        canUndo: true,
+        canRedo: prev.historyIndex < prev.canvasHistory.length - 2,
+      }));
+    }
   };
 
   const toggleGrid = () => {
@@ -230,7 +241,14 @@ export const PaintProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const setZoom = (zoom: number) => {
     setState((prev) => ({
       ...prev,
-      zoom,
+      zoom: Math.max(0.1, Math.min(5, zoom)),
+    }));
+  };
+
+  const resetTransform = () => {
+    setState((prev) => ({
+      ...prev,
+      zoom: 1,
     }));
   };
 
@@ -270,10 +288,28 @@ export const PaintProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           pixels[i + 2] = 255 - pixels[i + 2];
         }
         break;
-      // Implement blur and sharpen filters
+      case 'blur':
+        // Implement Gaussian blur
+        break;
+      case 'sharpen':
+        // Implement sharpening filter
+        break;
     }
 
     ctx.putImageData(imageData, 0, 0);
+  };
+
+  const saveProject = () => {
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+      const dataURL = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = dataURL;
+      a.download = 'imparator_paint_export.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
   };
   
   return (
@@ -298,8 +334,10 @@ export const PaintProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         toggleSymmetry,
         setSymmetryAxis,
         setZoom,
+        resetTransform,
         applyFilter,
         reorderLayers,
+        saveProject,
       }}
     >
       {children}
